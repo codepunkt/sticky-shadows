@@ -7,8 +7,11 @@ import {
   useState,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
-import "./global.css";
 import { Waypoint } from "react-waypoint";
+import styled from "styled-components";
+import "@vetixy/circular-std";
+
+import "./global.css";
 
 const stickyStyle = {
   position: "sticky",
@@ -131,6 +134,61 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
   };
 }
 
+const Button = styled.button`
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  gap: 7px;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 13px;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-align: center;
+  border-radius: 8px;
+  -webkit-transition: 0.2s cubic-bezier(0.83, 0, 0.17, 1);
+  transition: 0.2s cubic-bezier(0.83, 0, 0.17, 1);
+  -webkit-transition-property: background, border, outline, color;
+  transition-property: background, border, outline, color;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  --base-color: #2d4a72;
+  border: 1px solid transparent;
+  color: #2d4a72;
+  fill: #2d4a72;
+  background: #fff;
+  font-weight: 500;
+  font-size: 14px;
+
+  &:hover {
+    background: #f2f2f2;
+  }
+`;
+
+const PrimaryButton = styled(Button)`
+  background: #2451b2;
+  border: 1px solid #2451b2;
+  color: #fff;
+  fill: #fff;
+`;
+
 function Toolbar() {
   const { ref, style, isLastSticky, StartSpy } = useSticky({
     name: "toolbar",
@@ -144,92 +202,27 @@ function Toolbar() {
         ref={ref}
         style={{
           ...style,
-          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
+          boxShadow: isLastSticky
+            ? `0 4px 20px 0 rgb(0 28 75 / 10%), 0 1px 4px 0 rgb(0 28 75 / 10%)`
+            : "none",
         }}
       >
         <div
           style={{
-            padding: "12px 0",
+            padding: "20px",
             display: "flex",
             justifyContent: "space-between",
           }}
         >
-          <button>Left button</button>
-          <button>Right button</button>
+          <div></div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Button>Action 1</Button>
+            <Button>Action 2</Button>
+            <PrimaryButton>Action 2</PrimaryButton>
+          </div>
         </div>
       </div>
     </>
-  );
-}
-
-function NestedOuter({ id }) {
-  const outerId = `nested-outer-${id}`;
-  const { ref, style, StartSpy, EndSpy, isLastSticky } = useSticky({
-    name: outerId,
-    dependsOn: ["toolbar"],
-  });
-
-  return (
-    <div>
-      <StartSpy />
-      <div
-        ref={ref}
-        style={{
-          ...style,
-          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
-        }}
-      >
-        <h3>Headline</h3>
-      </div>
-      <p>
-        Jack Daniels on stage. Def Leppard. Take me down to the paradise city.
-        Ozzy Osbourne Bites the Head Off a Bat. I wanna rock and roll all night
-        and part of every day. You're the only one I wanna touch. I'm the man on
-        the silver mountain. Rob Zombie's Living Dead Girl.
-      </p>
-      <NestedInner
-        outerId={outerId}
-        headline="Subheadline 1"
-        text="GWAR. Headbanger's Ball on MTV. Les Paul with a Marshall stack Greta Van
-        Fleet. AC/DC. Michael Schenker from UFO and his Flying V. Feed my
-        Frankenstein, Hungry for love, and it's feeding time Savatage morphed
-        into the Trans-Siberian Orchestra. Les Paul with a Marshall stack"
-      />
-      <NestedInner
-        outerId={outerId}
-        headline="Subheadline 2"
-        text="Bullet Boys - Smooth up in ya. Jack Daniels on stage. Les Paul with a
-        Marshall stack Where is Tommy Lee's MAYHEM tattoo? Ace of Spades. Home
-        sweet home. Lamb of God. Sister Christian. Stewart Stevenson from Beavis
-        and Butt-head. 'Wait, just a moment before our love will die', sings
-        Mike Tramp of White Lion."
-      />
-      <EndSpy />
-    </div>
-  );
-}
-
-function NestedInner({ headline, text, outerId }) {
-  const { ref, style, StartSpy, EndSpy, isLastSticky } = useSticky({
-    name: "nested-inner",
-    dependsOn: ["toolbar", outerId],
-  });
-
-  return (
-    <div>
-      <StartSpy />
-      <div
-        ref={ref}
-        style={{
-          ...style,
-          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
-        }}
-      >
-        <h4>{headline}</h4>
-      </div>
-      <p>{text}</p>
-      <EndSpy />
-    </div>
   );
 }
 
@@ -255,6 +248,11 @@ function Table() {
 
   const cellStyle = {
     padding: "8px 0",
+    color: "#2d4a72",
+    fontSize: "14px",
+    minHeight: "60px",
+    display: "flex",
+    alignItems: "center",
   };
 
   const { ref, style, isLastSticky, StartSpy, EndSpy } = useSticky({
@@ -270,17 +268,49 @@ function Table() {
         ref={ref}
         style={{
           ...style,
-          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
+          boxShadow: isLastSticky
+            ? `0 4px 20px 0 rgb(0 28 75 / 10%), 0 1px 4px 0 rgb(0 28 75 / 10%)`
+            : "none",
         }}
       >
-        <div role="row" style={rowStyle}>
-          <span role="columnheader" style={cellStyle}>
+        <div
+          role="row"
+          style={{
+            ...rowStyle,
+            fontSize: "14px",
+          }}
+        >
+          <span
+            role="columnheader"
+            style={{
+              ...cellStyle,
+              color: "#7D8DA7",
+              fontWeight: 450,
+              minHeight: "40px",
+            }}
+          >
             Column A
           </span>
-          <span role="columnheader" style={cellStyle}>
+          <span
+            role="columnheader"
+            style={{
+              ...cellStyle,
+              color: "#7D8DA7",
+              fontWeight: 450,
+              minHeight: "40px",
+            }}
+          >
             Column B
           </span>
-          <span role="columnheader" style={cellStyle}>
+          <span
+            role="columnheader"
+            style={{
+              ...cellStyle,
+              color: "#7D8DA7",
+              fontWeight: 450,
+              minHeight: "40px",
+            }}
+          >
             Column C
           </span>
         </div>
@@ -301,26 +331,28 @@ function Table() {
   );
 }
 
+const Headline = styled.h1`
+  display: block;
+  background: #fafafa;
+  margin: 0;
+  padding: 20px;
+  color: #001c4b;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e0e6f0;
+`;
+
 export default function App() {
   return (
     <StickyContextProvider>
-      <h1
-        style={{
-          display: "block",
-          background: "#fafafa",
-          margin: 0,
-          padding: "16px 0",
-        }}
-      >
-        Toolbar above Table
-      </h1>
+      <Headline>Toolbar above Table</Headline>
       <Toolbar />
       <div style={{ height: "25px" }} />
-      <NestedOuter id="1" />
       <Table />
-      <NestedOuter id="2" />
+      <div style={{ height: "250px" }} />
       <Table />
-      <NestedOuter id="3" />
       <div style={{ height: "1500px" }} />
     </StickyContextProvider>
   );
