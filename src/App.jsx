@@ -117,72 +117,15 @@ function useSticky(name, below = []) {
   };
 }
 
-function useScrollSpy({ name, startOffset = 0, endOffset = 0 }) {
-  const startRef = useRef();
-  const endRef = useRef();
-  const isStartSticky = useRef(false);
-  const isEndSticky = useRef(false);
-  const isSticky = useRef(false);
-
-  useEffect(() => {
-    if (!startRef.current || !endRef.current) return;
-
-    const startCallback = ([entry]) => {
-      const { boundingClientRect: bcr, isIntersecting } = entry;
-      if (bcr.width === 0 && bcr.height === 0) return;
-
-      isStartSticky.current = !isIntersecting;
-      isSticky.current = isEndSticky.current && isStartSticky.current;
-    };
-
-    const endCallback = ([entry]) => {
-      const { boundingClientRect: bcr, isIntersecting } = entry;
-      if (bcr.width === 0 && bcr.height === 0) return;
-
-      isEndSticky.current = isIntersecting;
-      isSticky.current = isEndSticky.current && isStartSticky.current;
-    };
-
-    const options = { threshold: [0, 1] };
-    const startObserver = new IntersectionObserver(startCallback, options);
-    const endObserver = new IntersectionObserver(endCallback, options);
-
-    startObserver.observe(startRef.current);
-    endObserver.observe(endRef.current);
-
-    return () => {
-      startObserver.disconnect();
-      endObserver.disconnect();
-    };
-  }, [name, startOffset, endOffset]);
-
-  return {
-    isSticky: isSticky.current,
-    StartSpy: () => (
-      <div
-        ref={startRef}
-        style={{ transform: `translateY(${startOffset * -1}px)` }}
-      />
-    ),
-    EndSpy: () => (
-      <div
-        ref={endRef}
-        style={{ transform: `translateY(${endOffset * -1}px)` }}
-      />
-    ),
-  };
-}
-
 function Toolbar() {
-  const { ref, style, isSticky, setIsSticky } = useSticky("toolbar");
+  const { offset, ref, style, setIsSticky } = useSticky("toolbar");
+  const { isSticky, StartSpy } = useScrollSpy({
+    startOffset: offset,
+  });
 
   return (
     <>
-      <Waypoint
-        onEnter={() => console.log("toolbar not sticky")}
-        onLeave={() => console.log("toolbar sticky")}
-      />
-      {/* <ScrollSpy name="toolbar" /> */}
+      <StartSpy />
       <div
         ref={ref}
         style={{
@@ -254,7 +197,35 @@ function NestedInner({ headline, text, outerId }) {
   );
 }
 
-function Table({ name }) {
+function useScrollSpy({ startOffset = null, endOffset = null }) {
+  const [startSticky, setStartSticky] = useState(false);
+  const [endSticky, setEndSticky] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    setIsSticky(endOffset === null ? startSticky : startSticky && endSticky);
+  }, [startSticky, endSticky]);
+
+  return {
+    isSticky,
+    StartSpy: () => (
+      <Waypoint
+        onEnter={() => setStartSticky(false)}
+        onLeave={() => setStartSticky(true)}
+        topOffset={startOffset ?? 0}
+      />
+    ),
+    EndSpy: () => (
+      <Waypoint
+        onEnter={() => setEndSticky(true)}
+        onLeave={() => setEndSticky(false)}
+        topOffset={endOffset ?? 0}
+      />
+    ),
+  };
+}
+
+function Table() {
   const rows = [
     ["foo", "bar", "baz"],
     ["foo", "bar", "baz"],
@@ -283,33 +254,24 @@ function Table({ name }) {
     refHeight: stickyHeight,
     style,
     offset,
-    isSticky,
-    setIsSticky,
+    // isSticky,
+    // setIsSticky,
   } = useSticky("tablehead", ["toolbar"]);
 
-  // const {
-  //   isSticky: isS,
-  //   StartSpy,
-  //   EndSpy,
-  // } = useScrollSpy({
-  //   name,
-  //   startOffset: offset,
-  //   endOffset: offset + stickyHeight,
-  // });
+  const { isSticky, StartSpy, EndSpy } = useScrollSpy({
+    startOffset: offset,
+    endOffset: offset + stickyHeight,
+  });
 
   return (
     <div role="table">
-      {/* <StartSpy /> */}
-      <Waypoint
-        onEnter={() => console.log(`${name} not sticky`)}
-        onLeave={() => console.log(`${name} sticky`)}
-        topOffset={offset}
-      />
+      <StartSpy />
       <div
         role="rowgroup"
         ref={ref}
         style={{
           ...style,
+          borderBottom: `1px solid ${isSticky ? "red" : "transparent"}`,
         }}
       >
         <div role="row" style={rowStyle}>
@@ -335,8 +297,7 @@ function Table({ name }) {
           </div>
         ))}
       </div>
-      {/* <EndSpy /> */}
-      {/* <ScrollSpy name={name} offset={offset + refHeight} isEnd /> */}
+      <EndSpy />
     </div>
   );
 }
@@ -356,9 +317,9 @@ export default function App() {
       </h1>
       <Toolbar />
       <NestedOuter id="1" />
-      <Table name="table 1" />
+      <Table />
       <NestedOuter id="2" />
-      {/* <Table name="table 2" /> */}
+      <Table />
       <NestedOuter id="3" />
       <div style={{ height: "1000px" }} />
     </StickyContextProvider>
