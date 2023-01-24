@@ -57,27 +57,22 @@ function useStickyContextValue() {
   return value;
 }
 
-function useStickyStore() {
-  const { state, dispatch } = useStickyContextValue();
-
-  const hasId = (id) => state.map(({ id }) => id).includes(id);
-  const add = (newSticky) => dispatch({ type: "add", payload: newSticky });
-  const setSticky = (payload) => dispatch({ type: "setSticky", payload });
-
-  return { stickyElements: state, add, hasId, setSticky };
-}
-
 function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
   if (!name) {
     throw new Error(`useSticky needs a name!`);
   }
+
+  const { state: stickyElements, dispatch } = useStickyContextValue();
+
+  const hasId = (id) => stickyElements.map(({ id }) => id).includes(id);
+  const add = (newSticky) => dispatch({ type: "add", payload: newSticky });
+  const setSticky = (payload) => dispatch({ type: "setSticky", payload });
 
   const [id] = useState(() => uuidv4());
   const [offset, setOffset] = useState(0);
   const [index, setIndex] = useState(0);
   const [refHeight, setRefHeight] = useState(0);
   const ref = useRef();
-  const { add, hasId, stickyElements, setSticky } = useStickyStore();
   const [startSticky, setStartSticky] = useState(false);
   const [endSticky, setEndSticky] = useState(false);
 
@@ -221,7 +216,7 @@ function NestedInner({ headline, text, outerId }) {
   });
 
   return (
-    <>
+    <div>
       <StartSpy />
       <div
         ref={ref}
@@ -234,7 +229,7 @@ function NestedInner({ headline, text, outerId }) {
       </div>
       <p>{text}</p>
       <EndSpy />
-    </>
+    </div>
   );
 }
 
