@@ -19,19 +19,17 @@ const stickyStyle = {
 
 const StickyContext = createContext();
 
-function stickyReducer(state, action) {
+function stickyElementsReducer(state, action) {
   switch (action.type) {
     case "add": {
-      return { stickies: [...state.stickies, action.payload] };
+      return [...state, { ...action.payload, isSticky: false }];
     }
     case "setSticky": {
-      return {
-        stickies: state.stickies.map((sticky) =>
-          sticky.id === action.payload.id
-            ? { ...sticky, isSticky: action.payload.isSticky }
-            : sticky
-        ),
-      };
+      return state.map((stickyElement) =>
+        stickyElement.id === action.payload.id
+          ? { ...stickyElement, isSticky: action.payload.isSticky }
+          : stickyElement
+      );
     }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
@@ -40,7 +38,7 @@ function stickyReducer(state, action) {
 }
 
 function StickyContextProvider({ children }) {
-  const [state, dispatch] = useReducer(stickyReducer, { stickies: [] });
+  const [state, dispatch] = useReducer(stickyElementsReducer, []);
   // NOTE: you *might* need to memoize this value
   // Learn more in http://kcd.im/optimize-context
   const value = { state, dispatch };
@@ -62,16 +60,14 @@ function useStickyContextValue() {
 function useStickyStore() {
   const { state, dispatch } = useStickyContextValue();
 
-  const hasSticky = (id) => state.stickies.map(({ id }) => id).includes(id);
-  const addSticky = (newSticky) =>
-    dispatch({ type: "add", payload: { ...newSticky, isSticky: false } });
-  const setIsSticky = (id, isSticky) =>
-    dispatch({ type: "setSticky", payload: { id, isSticky } });
+  const hasId = (id) => state.map(({ id }) => id).includes(id);
+  const add = (newSticky) => dispatch({ type: "add", payload: newSticky });
+  const setSticky = (payload) => dispatch({ type: "setSticky", payload });
 
-  return { state, addSticky, hasSticky, setIsSticky };
+  return { stickyElements: state, add, hasId, setSticky };
 }
 
-function useSticky({ name, below = [], noEnd = false } = {}) {
+function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
   if (!name) {
     throw new Error(`useSticky needs a name!`);
   }
@@ -81,13 +77,12 @@ function useSticky({ name, below = [], noEnd = false } = {}) {
   const [index, setIndex] = useState(0);
   const [refHeight, setRefHeight] = useState(0);
   const ref = useRef();
-  const { addSticky, hasSticky, state } = useStickyStore();
+  const { add, hasId, stickyElements, setSticky } = useStickyStore();
   const [startSticky, setStartSticky] = useState(false);
   const [endSticky, setEndSticky] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
 
   useEffect(() => {
-    setIsSticky(noEnd ? startSticky : startSticky && endSticky);
+    setSticky({ id, isSticky: noEnd ? startSticky : startSticky && endSticky });
   }, [startSticky, endSticky]);
 
   useEffect(() => {
@@ -95,27 +90,35 @@ function useSticky({ name, below = [], noEnd = false } = {}) {
 
     setRefHeight(ref.current.getBoundingClientRect().height);
 
-    if (!hasSticky(id)) {
-      addSticky({ id, ref, name });
+    if (!hasId(id)) {
+      add({ id, ref, name, dependsOn });
       return;
     }
 
     let offset = 0;
     let index = 100;
-    for (let a of state.stickies) {
-      if (a.ref.current && below.includes(a.name)) {
+    for (let a of stickyElements) {
+      if (a.ref.current && dependsOn.includes(a.name)) {
         offset += a.ref.current.getBoundingClientRect().height;
         index--;
       }
     }
     setOffset(offset);
     setIndex(index);
-  }, [addSticky, hasSticky, id, ref, name, below, state.stickies]);
+  }, [add, hasId, id, ref, name, dependsOn, stickyElements]);
+
+  const sticky = stickyElements.find((sticky) => sticky.id === id);
+  const isSticky = sticky?.isSticky ?? false;
 
   return {
     ref,
     style: { ...stickyStyle, top: `${offset}px`, zIndex: index },
     isSticky,
+    isLastSticky:
+      isSticky &&
+      stickyElements.filter(
+        (sticky) => sticky.isSticky && sticky.dependsOn.includes(name)
+      ).length === 0,
     StartSpy: () => (
       <Waypoint
         onEnter={() => setStartSticky(false)}
@@ -134,7 +137,7 @@ function useSticky({ name, below = [], noEnd = false } = {}) {
 }
 
 function Toolbar() {
-  const { ref, style, isSticky, StartSpy } = useSticky({
+  const { ref, style, isLastSticky, StartSpy } = useSticky({
     name: "toolbar",
     noEnd: true,
   });
@@ -146,7 +149,7 @@ function Toolbar() {
         ref={ref}
         style={{
           ...style,
-          borderBottom: isSticky ? "1px solid red" : "1px solid transparent",
+          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
         }}
       >
         <div
@@ -166,9 +169,9 @@ function Toolbar() {
 
 function NestedOuter({ id }) {
   const outerId = `nested-outer-${id}`;
-  const { ref, style, StartSpy, EndSpy, isSticky } = useSticky({
+  const { ref, style, StartSpy, EndSpy, isLastSticky } = useSticky({
     name: outerId,
-    below: ["toolbar"],
+    dependsOn: ["toolbar"],
   });
 
   return (
@@ -178,7 +181,7 @@ function NestedOuter({ id }) {
         ref={ref}
         style={{
           ...style,
-          borderBottom: isSticky ? "1px solid red" : "1px solid transparent",
+          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
         }}
       >
         <h3>Headline</h3>
@@ -212,9 +215,9 @@ function NestedOuter({ id }) {
 }
 
 function NestedInner({ headline, text, outerId }) {
-  const { ref, style, StartSpy, EndSpy, isSticky } = useSticky({
+  const { ref, style, StartSpy, EndSpy, isLastSticky } = useSticky({
     name: "nested-inner",
-    below: ["toolbar", outerId],
+    dependsOn: ["toolbar", outerId],
   });
 
   return (
@@ -224,7 +227,7 @@ function NestedInner({ headline, text, outerId }) {
         ref={ref}
         style={{
           ...style,
-          borderBottom: isSticky ? "1px solid red" : "1px solid transparent",
+          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
         }}
       >
         <h4>{headline}</h4>
@@ -259,9 +262,9 @@ function Table() {
     padding: "8px 0",
   };
 
-  const { ref, style, isSticky, StartSpy, EndSpy } = useSticky({
+  const { ref, style, isLastSticky, StartSpy, EndSpy } = useSticky({
     name: "tablehead",
-    below: ["toolbar"],
+    dependsOn: ["toolbar"],
   });
 
   return (
@@ -272,7 +275,7 @@ function Table() {
         ref={ref}
         style={{
           ...style,
-          borderBottom: `1px solid ${isSticky ? "red" : "transparent"}`,
+          boxShadow: `0 2px 11px -3px ${isLastSticky ? "#333" : "transparent"}`,
         }}
       >
         <div role="row" style={rowStyle}>
