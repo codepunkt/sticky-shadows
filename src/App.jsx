@@ -212,17 +212,25 @@ function NestedOuter({ id }) {
 }
 
 function NestedInner({ headline, text, outerId }) {
-  const { ref, style } = useSticky({
+  const { ref, style, StartSpy, EndSpy, isSticky } = useSticky({
     name: "nested-inner",
     below: ["toolbar", outerId],
   });
 
   return (
     <>
-      <div ref={ref} style={style}>
+      <StartSpy />
+      <div
+        ref={ref}
+        style={{
+          ...style,
+          borderBottom: isSticky ? "1px solid red" : "1px solid transparent",
+        }}
+      >
         <h4>{headline}</h4>
       </div>
       <p>{text}</p>
+      <EndSpy />
     </>
   );
 }
