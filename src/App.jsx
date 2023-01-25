@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
@@ -40,9 +33,7 @@ function StickyContextProvider({ children }) {
   // NOTE: you *might* need to memoize this value
   // Learn more in http://kcd.im/optimize-context
   const value = { state, dispatch };
-  return (
-    <StickyContext.Provider value={value}>{children}</StickyContext.Provider>
-  );
+  return <StickyContext.Provider value={value}>{children}</StickyContext.Provider>;
 }
 
 function useStickyContextValue() {
@@ -110,20 +101,19 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
     isSticky,
     isLastSticky:
       isSticky &&
-      stickyElements.filter(
-        (sticky) => sticky.isSticky && sticky.dependsOn.includes(name)
-      ).length === 0,
+      stickyElements.filter((sticky) => sticky.isSticky && sticky.dependsOn.includes(name))
+        .length === 0,
     StartSpy: () => (
       <Waypoint
-        onEnter={() => setStartSticky(false)}
-        onLeave={() => setStartSticky(true)}
+        onEnter={() => console.log(`${name} enter start`) || setStartSticky(false)}
+        onLeave={() => console.log(`${name} leave start`) || setStartSticky(true)}
         topOffset={top}
       />
     ),
     EndSpy: () => (
       <Waypoint
-        onEnter={() => setEndSticky(true)}
-        onLeave={() => setEndSticky(false)}
+        onEnter={() => console.log(`${name} enter end`) || setEndSticky(true)}
+        onLeave={() => console.log(`${name} leave end`) || setEndSticky(false)}
         topOffset={top + refHeight}
       />
     ),
@@ -139,12 +129,7 @@ function Toolbar() {
   return (
     <>
       <StartSpy />
-      <StickyShadow
-        ref={ref}
-        $isSticky={isLastSticky}
-        $top={top}
-        $zIndex={zIndex}
-      >
+      <StickyShadow ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
         <div
           style={{
             padding: "20px",
@@ -201,13 +186,7 @@ function Table() {
   return (
     <div role="table" style={{ padding: "20px" }}>
       <StartSpy />
-      <StickyShadow
-        role="rowgroup"
-        ref={ref}
-        $isSticky={isLastSticky}
-        $top={top}
-        $zIndex={zIndex}
-      >
+      <StickyShadow role="rowgroup" ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
         <div
           role="row"
           style={{
@@ -285,9 +264,9 @@ export default function App() {
       <Headline>Toolbar above Table</Headline>
       <Toolbar />
       <div style={{ height: "25px" }} />
-      <Table />
+      {/* <Table /> */}
       <div style={{ height: "250px" }} />
-      <Table />
+      {/* <Table /> */}
       <div style={{ height: "1500px" }} />
     </StickyContextProvider>
   );
