@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-waypoint/es/index.js b/node_modules/react-waypoint/es/index.js
+index ed6c50b..d6f0385 100644
+--- a/node_modules/react-waypoint/es/index.js
++++ b/node_modules/react-waypoint/es/index.js
+@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
+ import React from 'react';
+ import { isForwardRef } from 'react-is';
+ 
++
+ /**
+  * Attempts to parse the offset provided as a prop as a percentage. For
+  * instance, if the component has been provided with the string "20%" as
+@@ -405,7 +406,7 @@ var Waypoint = /*#__PURE__*/function (_React$PureComponent) {
+ 
+     if (currentPosition === INSIDE) {
+       onEnter.call(this, callbackArg);
+-    } else if (previousPosition === INSIDE) {
++    } else if (previousPosition === INSIDE || previousPosition === undefined) {
+       onLeave.call(this, callbackArg);
+     }
+ 

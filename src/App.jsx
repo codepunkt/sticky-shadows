@@ -105,15 +105,15 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
         .length === 0,
     StartSpy: () => (
       <Waypoint
-        onEnter={() => console.log(`${name} enter start`) || setStartSticky(false)}
-        onLeave={() => console.log(`${name} leave start`) || setStartSticky(true)}
+        onEnter={() => setStartSticky(false)}
+        onLeave={() => setStartSticky(true)}
         topOffset={top}
       />
     ),
     EndSpy: () => (
       <Waypoint
-        onEnter={() => console.log(`${name} enter end`) || setEndSticky(true)}
-        onLeave={() => console.log(`${name} leave end`) || setEndSticky(false)}
+        onEnter={() => setEndSticky(true)}
+        onLeave={() => setEndSticky(false)}
         topOffset={top + refHeight}
       />
     ),
@@ -264,9 +264,9 @@ export default function App() {
       <Headline>Toolbar above Table</Headline>
       <Toolbar />
       <div style={{ height: "25px" }} />
-      {/* <Table /> */}
+      <Table />
       <div style={{ height: "250px" }} />
-      {/* <Table /> */}
+      <Table />
       <div style={{ height: "1500px" }} />
     </StickyContextProvider>
   );
