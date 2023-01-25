@@ -12,11 +12,11 @@ export const StickyShadow = styled.div`
     css`
       &::after {
         content: "";
-        background: -webkit-linear-gradient(
-          top,
-          rgba(0, 28, 75, 0.1) 0%,
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 28, 75, 0.1),
           rgba(0, 28, 75, 0.05) 20%,
-          rgba(0, 28, 75, 0) 100%
+          rgba(0, 28, 75, 0)
         );
         display: block;
         height: 10px;

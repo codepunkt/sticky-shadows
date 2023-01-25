@@ -13,6 +13,7 @@ import "@vetixy/circular-std";
 
 import "./global.css";
 import { StickyShadow } from "./StickyShadow";
+import { ToolbarButton } from "./ToolbarButton";
 
 const StickyContext = createContext();
 
@@ -129,51 +130,11 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
   };
 }
 
-const Button = styled.button`
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  padding: 0 13px;
-  vertical-align: middle;
-  white-space: nowrap;
-  text-align: center;
-  border-radius: 8px;
-  transition: 0.2s cubic-bezier(0.83, 0, 0.17, 1);
-  transition-property: background, border, outline, color;
-  appearance: none !important;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 18px;
-  border: 1px solid transparent;
-  color: #2d4a72;
-  fill: #2d4a72;
-  background: #fff;
-  font-weight: 500;
-  font-size: 14px;
-
-  &:hover {
-    background: #f2f2f2;
-  }
-`;
-
-const PrimaryButton = styled(Button)`
-  background: #2451b2;
-  border: 1px solid #2451b2;
-  color: #fff;
-  fill: #fff;
-`;
-
 function Toolbar() {
   const { ref, top, zIndex, isLastSticky, StartSpy } = useSticky({
     name: "toolbar",
     noEnd: true,
   });
-
-  console.log("toolbar", { isLastSticky });
 
   return (
     <>
@@ -193,9 +154,9 @@ function Toolbar() {
         >
           <div></div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <Button>Action 1</Button>
-            <Button>Action 2</Button>
-            <PrimaryButton>Action 2</PrimaryButton>
+            <ToolbarButton>Action 1</ToolbarButton>
+            <ToolbarButton>Action 2</ToolbarButton>
+            <ToolbarButton $kind="primary">Action 2</ToolbarButton>
           </div>
         </div>
       </StickyShadow>
