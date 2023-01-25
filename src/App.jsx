@@ -12,13 +12,7 @@ import styled from "styled-components";
 import "@vetixy/circular-std";
 
 import "./global.css";
-
-const stickyStyle = {
-  position: "sticky",
-  left: 0,
-  background: "#fff",
-  zIndex: 2,
-};
+import { StickyShadow } from "./StickyShadow";
 
 const StickyContext = createContext();
 
@@ -72,8 +66,8 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
   const setSticky = (payload) => dispatch({ type: "setSticky", payload });
 
   const [id] = useState(() => uuidv4());
-  const [offset, setOffset] = useState(0);
-  const [index, setIndex] = useState(0);
+  const [top, setTop] = useState(0);
+  const [zIndex, setZIndex] = useState(0);
   const [refHeight, setRefHeight] = useState(0);
   const ref = useRef();
   const [startSticky, setStartSticky] = useState(false);
@@ -93,16 +87,16 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
       return;
     }
 
-    let offset = 0;
-    let index = 100;
+    let top = 0;
+    let zIndex = 100;
     for (let a of stickyElements) {
       if (a.ref.current && dependsOn.includes(a.name)) {
-        offset += a.ref.current.getBoundingClientRect().height;
-        index--;
+        top += a.ref.current.getBoundingClientRect().height;
+        zIndex--;
       }
     }
-    setOffset(offset);
-    setIndex(index);
+    setTop(top);
+    setZIndex(zIndex);
   }, [add, hasId, id, ref, name, dependsOn, stickyElements]);
 
   const sticky = stickyElements.find((sticky) => sticky.id === id);
@@ -110,7 +104,8 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
 
   return {
     ref,
-    style: { ...stickyStyle, top: `${offset}px`, zIndex: index },
+    zIndex,
+    top,
     isSticky,
     isLastSticky:
       isSticky &&
@@ -121,32 +116,23 @@ function useSticky({ name, dependsOn = [], noEnd = false } = {}) {
       <Waypoint
         onEnter={() => setStartSticky(false)}
         onLeave={() => setStartSticky(true)}
-        topOffset={offset}
+        topOffset={top}
       />
     ),
     EndSpy: () => (
       <Waypoint
         onEnter={() => setEndSticky(true)}
         onLeave={() => setEndSticky(false)}
-        topOffset={offset + refHeight}
+        topOffset={top + refHeight}
       />
     ),
   };
 }
 
 const Button = styled.button`
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   gap: 7px;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   height: 36px;
   padding: 0 13px;
@@ -154,22 +140,14 @@ const Button = styled.button`
   white-space: nowrap;
   text-align: center;
   border-radius: 8px;
-  -webkit-transition: 0.2s cubic-bezier(0.83, 0, 0.17, 1);
   transition: 0.2s cubic-bezier(0.83, 0, 0.17, 1);
-  -webkit-transition-property: background, border, outline, color;
   transition-property: background, border, outline, color;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
   appearance: none !important;
   cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   font-weight: 500;
   font-size: 14px;
   line-height: 18px;
-  --base-color: #2d4a72;
   border: 1px solid transparent;
   color: #2d4a72;
   fill: #2d4a72;
@@ -190,22 +168,21 @@ const PrimaryButton = styled(Button)`
 `;
 
 function Toolbar() {
-  const { ref, style, isLastSticky, StartSpy } = useSticky({
+  const { ref, top, zIndex, isLastSticky, StartSpy } = useSticky({
     name: "toolbar",
     noEnd: true,
   });
 
+  console.log("toolbar", { isLastSticky });
+
   return (
     <>
       <StartSpy />
-      <div
+      <StickyShadow
         ref={ref}
-        style={{
-          ...style,
-          boxShadow: isLastSticky
-            ? `0 4px 20px 0 rgb(0 28 75 / 10%), 0 1px 4px 0 rgb(0 28 75 / 10%)`
-            : "none",
-        }}
+        $isSticky={isLastSticky}
+        $top={top}
+        $zIndex={zIndex}
       >
         <div
           style={{
@@ -221,7 +198,7 @@ function Toolbar() {
             <PrimaryButton>Action 2</PrimaryButton>
           </div>
         </div>
-      </div>
+      </StickyShadow>
     </>
   );
 }
@@ -255,23 +232,20 @@ function Table() {
     alignItems: "center",
   };
 
-  const { ref, style, isLastSticky, StartSpy, EndSpy } = useSticky({
+  const { ref, zIndex, top, isLastSticky, StartSpy, EndSpy } = useSticky({
     name: "tablehead",
     dependsOn: ["toolbar"],
   });
 
   return (
-    <div role="table">
+    <div role="table" style={{ padding: "20px" }}>
       <StartSpy />
-      <div
+      <StickyShadow
         role="rowgroup"
         ref={ref}
-        style={{
-          ...style,
-          boxShadow: isLastSticky
-            ? `0 4px 20px 0 rgb(0 28 75 / 10%), 0 1px 4px 0 rgb(0 28 75 / 10%)`
-            : "none",
-        }}
+        $isSticky={isLastSticky}
+        $top={top}
+        $zIndex={zIndex}
       >
         <div
           role="row"
@@ -314,7 +288,7 @@ function Table() {
             Column C
           </span>
         </div>
-      </div>
+      </StickyShadow>
       <div role="rowgroup">
         {rows.map((row, i) => (
           <div role="row" key={i} style={rowStyle}>
