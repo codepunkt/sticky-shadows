@@ -1,6 +1,6 @@
 import styled, { css } from "styled-components";
 
-export const StickyShadow = styled.div`
+export const StickyWithShadow = styled.div`
   position: sticky;
   left: 0;
   top: ${(props) => props.$top}px;

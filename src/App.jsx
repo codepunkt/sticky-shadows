@@ -5,7 +5,7 @@ import styled from "styled-components";
 import "@vetixy/circular-std";
 
 import "./global.css";
-import { StickyShadow } from "./StickyShadow";
+import { StickyWithShadow } from "./StickyWithShadow";
 import { ToolbarButton } from "./ToolbarButton";
 
 const StickyContext = createContext();
@@ -129,7 +129,7 @@ function Toolbar() {
   return (
     <>
       <StartSpy />
-      <StickyShadow ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
+      <StickyWithShadow ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
         <div
           style={{
             padding: "20px",
@@ -144,7 +144,7 @@ function Toolbar() {
             <ToolbarButton $kind="primary">Action 2</ToolbarButton>
           </div>
         </div>
-      </StickyShadow>
+      </StickyWithShadow>
     </>
   );
 }
@@ -186,7 +186,13 @@ function Table() {
   return (
     <div role="table" style={{ padding: "20px" }}>
       <StartSpy />
-      <StickyShadow role="rowgroup" ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
+      <StickyWithShadow
+        role="rowgroup"
+        ref={ref}
+        $isSticky={isLastSticky}
+        $top={top}
+        $zIndex={zIndex}
+      >
         <div
           role="row"
           style={{
@@ -228,7 +234,7 @@ function Table() {
             Column C
           </span>
         </div>
-      </StickyShadow>
+      </StickyWithShadow>
       <div role="rowgroup">
         {rows.map((row, i) => (
           <div role="row" key={i} style={rowStyle}>
@@ -240,6 +246,64 @@ function Table() {
           </div>
         ))}
       </div>
+      <EndSpy />
+    </div>
+  );
+}
+
+function NestedOuter({ id }) {
+  const outerId = `nested-outer-${id}`;
+  const { ref, top, zIndex, StartSpy, EndSpy, isLastSticky } = useSticky({
+    name: outerId,
+    dependsOn: ["toolbar"],
+  });
+
+  return (
+    <div>
+      <StartSpy />
+      <StickyWithShadow ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
+        <h3>Headline</h3>
+      </StickyWithShadow>
+      <p>
+        Jack Daniels on stage. Def Leppard. Take me down to the paradise city. Ozzy Osbourne Bites
+        the Head Off a Bat. I wanna rock and roll all night and part of every day. You're the only
+        one I wanna touch. I'm the man on the silver mountain. Rob Zombie's Living Dead Girl.
+      </p>
+      <NestedInner
+        outerId={outerId}
+        headline="Subheadline 1"
+        text="GWAR. Headbanger's Ball on MTV. Les Paul with a Marshall stack Greta Van
+        Fleet. AC/DC. Michael Schenker from UFO and his Flying V. Feed my
+        Frankenstein, Hungry for love, and it's feeding time Savatage morphed
+        into the Trans-Siberian Orchestra. Les Paul with a Marshall stack"
+      />
+      <NestedInner
+        outerId={outerId}
+        headline="Subheadline 2"
+        text="Bullet Boys - Smooth up in ya. Jack Daniels on stage. Les Paul with a
+        Marshall stack Where is Tommy Lee's MAYHEM tattoo? Ace of Spades. Home
+        sweet home. Lamb of God. Sister Christian. Stewart Stevenson from Beavis
+        and Butt-head. 'Wait, just a moment before our love will die', sings
+        Mike Tramp of White Lion."
+      />
+      <EndSpy />
+    </div>
+  );
+}
+
+function NestedInner({ headline, text, outerId }) {
+  const { ref, top, zIndex, StartSpy, EndSpy, isLastSticky } = useSticky({
+    name: "nested-inner",
+    dependsOn: ["toolbar", outerId],
+  });
+
+  return (
+    <div>
+      <StartSpy />
+      <StickyWithShadow ref={ref} $isSticky={isLastSticky} $top={top} $zIndex={zIndex}>
+        <h4>{headline}</h4>
+      </StickyWithShadow>
+      <p>{text}</p>
       <EndSpy />
     </div>
   );
@@ -264,9 +328,15 @@ export default function App() {
       <Headline>Toolbar above Table</Headline>
       <Toolbar />
       <div style={{ height: "25px" }} />
+      <NestedOuter id="1" />
+      <div style={{ height: "75px" }} />
       <Table />
-      <div style={{ height: "250px" }} />
+      <div style={{ height: "75px" }} />
+      <NestedOuter id="2" />
+      <div style={{ height: "75px" }} />
       <Table />
+      <div style={{ height: "75px" }} />
+      <NestedOuter id="3" />
       <div style={{ height: "1500px" }} />
     </StickyContextProvider>
   );
